@@ -35,6 +35,16 @@ namespace GameMap {
 
             _render.material = Resources.Load<Material>(MATERIAL_PATH + type.ToString());
         }
+
+        //Hexagon Wrong Neighbours
+        private bool WrongNeighbours(int currentRow, int currentCol) {
+            if(_row % 2 <= 0 && (currentRow == _row + 1 && currentCol == _col + 1 || currentRow == _row - 1 && currentCol == _col + 1))
+                return true;
+            else if(_row % 2 >= 1 && (currentRow == _row - 1 && currentCol == _col - 1 || currentRow == _row + 1 && currentCol == _col - 1))
+                return true;
+            else 
+                return false;
+        }
         #endregion
 
         #region Public Methods
@@ -101,8 +111,7 @@ namespace GameMap {
             for (int i = rowMinimum; i <= rowMaximum; i++)
                 for (int j = columnMinimum; j <= columnMaximum; j++)
                     if (i != _row || j != _col) 
-                        if(_row % 2 <= 0 && (i == _row + 1 && j == _col + 1 || i == _row - 1 && j == _col + 1) || 
-                        (_row % 2 >= 1 && (i == _row - 1 && j == _col - 1 || i == _row + 1 && j == _col - 1)))
+                        if(WrongNeighbours(i, j))
                             continue;
                         else
                             result.Add(map[i,j]);
