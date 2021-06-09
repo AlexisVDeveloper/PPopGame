@@ -30,7 +30,7 @@ namespace ObjectsPool
         public bool isActive
         {
             get {
-                return isActive;
+                return _isActive;
             }
 
             set {

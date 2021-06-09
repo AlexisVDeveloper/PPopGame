@@ -21,9 +21,9 @@ namespace ObjectsPool
             _finalizeObject = finalize;
         }
 
-        public PoolObject<T> GetObject(int count)
+        public PoolObject<T> GetObject()
         {
-            for(var i = 0; i < count; i++) {
+            for(var i = 0; i < _allObjects.Count; i++) {
                 if(!_allObjects[i].isActive) {
                     _allObjects[i].isActive = true;
                     return _allObjects[i];

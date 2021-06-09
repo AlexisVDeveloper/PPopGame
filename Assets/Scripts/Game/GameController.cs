@@ -12,13 +12,12 @@ namespace PPopGame {
     {
         #region Attributes
         [Header("Map Parameters")]
-        [SerializeField] private int _rowMax; 
-        [SerializeField] private int _colMax;
         [SerializeField] private MapGenerator _mapGenerator;
         [Header("UI Controller")]
         [SerializeField] private UIController _UIController;
         private List<MapNode> _allPaths;
         private MapNode _start, _end;
+        private int _currentRow = 8, _currentCol = 8; 
         private const string _errorPathMessage = "We can't find a path to that position.";
         private const string _saveMapMessage = "The Map was saved correctly.";
         private const string _saveMapErrorMessage = "The Map already exist.";
@@ -39,6 +38,7 @@ namespace PPopGame {
             });
 
             _UIController.AddSaveMapAction(() => {
+                RestartMap();
                  _mapGenerator.SaveMap((index) => {
                     _UIController.TakeScreenshot((text2D) => {
                         _mapGenerator.SaveImageMap(text2D, index);
@@ -48,7 +48,8 @@ namespace PPopGame {
             });
 
             _UIController.AddGenerateMapAction(() => {
-                _mapGenerator.Generate(_rowMax, _colMax, () => { _UIController.GoToMapScreen(); });
+                Debug.Log($"{_currentRow} , {_currentCol}");
+                _mapGenerator.Generate(_currentRow, _currentCol, () => { _UIController.GoToMapScreen(); });
             });
             
             _UIController.AddLoadMapAction(() => {
@@ -61,6 +62,15 @@ namespace PPopGame {
                 _mapGenerator.LoadMapWithIndex(() => {
                     _UIController.GoToMapScreen();
                 }, index);
+            });
+
+            _UIController.AddBackMenuAction(() => {
+                _mapGenerator.Desactive();
+            });
+
+            _UIController.AddSliderAction((row, col) => {
+                _currentRow = (int)row;
+                _currentCol = (int)col;
             });
         }
 

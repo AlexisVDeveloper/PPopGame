@@ -14,13 +14,14 @@ namespace GameMap {
         private NodeType _currentType;
         private Renderer _render;
         private int _row, _col;
+        private const float _offsetY = 1.4f;
         private IEnumerable<MapNode> _neighbours;
         private const string MATERIAL_PATH = "Materials/m_";
         private const int _newRotationX = -90;
         #endregion
 
         #region Private Methods
-        private void Awake() {
+        private void Init() {
             _render = GetComponent<Renderer>();
 
             transform.eulerAngles = new Vector2(_newRotationX, 0);
@@ -37,10 +38,24 @@ namespace GameMap {
         #endregion
 
         #region Public Methods
-        public void SetPosition(int row, int col) {
+        public static void InitNode(MapNode mn) {
+            mn.gameObject.SetActive(true);
+            mn.Init();
+        }
+
+        public static void DisposeNode(MapNode mn) {
+            mn.gameObject.SetActive(false);
+        }
+
+        public void SetPosition(int row, int col, Transform startPos) {
             _row = row;
             _col = col;
             name = $"MapNode: [{row},{col}]";
+
+            float offsetX = row % 2 == 1 ? transform.localScale.x / 2 : 0;
+            var newPosition = new Vector2(startPos.position.x + offsetX + transform.localScale.x * col,
+                                       startPos.position.y + (transform.localScale.y / _offsetY) * row);
+            transform.position = newPosition;
         }
 
         public float DistanceTo(int row, int col) {

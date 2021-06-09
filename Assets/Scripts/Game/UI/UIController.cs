@@ -13,29 +13,31 @@ namespace PPopGame {
         [SerializeField] private CameraController _cameraController;
         [SerializeField] private TextMeshProUGUI _messageTxt, _generateTxt;
         [SerializeField] private UIMapLoader _mapLoaderController;
+        [SerializeField] private Slider _rowSlider, _colSlider;
         private const float _timeToDesactive = 4f;
         private IEnumerator _desactiveMessageCoroutine;
-        private Action _restartMapAction, _changeMapAction, _saveMapAction, _loadMapAction, _generateMapAction;
+        private Action _restartMapAction, _changeMapAction, _saveMapAction, _loadMapAction, _generateMapAction, _backMainMenuAction;
+        private Action<float, float> _getSliderValueAction;
         #endregion
 
         #region Public Methods
         public void GoToMapScreen() {
             ActiveMainScreen(false);
             ActiveLoadScreen(false);
-            _cameraController.StartTransition();
+            _cameraController.StartTransition(1, true);
         }
 
         public void GoToLoadScreen(Sprite[] mapSprites) {
             ActiveMainScreen(false);
             ActiveLoadScreen(true);
-            _cameraController.StartTransition();
+            _cameraController.StartTransition(1, true);
             _mapLoaderController.StartLoader(mapSprites);
         }
 
         public void GoToMainScreen() {
             ActiveLoadScreen(false);
             ActiveMainScreen(true);
-            _cameraController.StartTransition();
+            _cameraController.StartTransition(0, false);
         }
 
         public void AddChangeMapAction(Action changeMap) {
@@ -60,6 +62,14 @@ namespace PPopGame {
 
         public void AddMapButtonAction(Action<int> mapButtonAction) {
             _mapLoaderController.AddMapButtonAction(mapButtonAction);
+        }
+
+        public void AddBackMenuAction(Action backMainMenu) {
+            _backMainMenuAction = backMainMenu;
+        }
+
+        public void AddSliderAction(Action<float, float> sliderAction) {
+            _getSliderValueAction = sliderAction;
         }
 
         public void RestartMapButtonPress() {
@@ -88,6 +98,19 @@ namespace PPopGame {
             GoToMainScreen();
         }
 
+        public void BackMapToScreenPress() {
+            _backMainMenuAction?.Invoke();
+            GoToMainScreen();
+        }
+
+        public void ChangeRowSliderValue() {
+            _getSliderValueAction(_rowSlider.value, _colSlider.value);
+        }
+
+        public void ChangeColSliderValue() {
+            _getSliderValueAction(_rowSlider.value, _colSlider.value);
+        }
+
         public void SetMessageText(string text, Color color) {
             _messageTxt.text = text;
             _messageTxt.gameObject.SetActive(true);
@@ -114,6 +137,7 @@ namespace PPopGame {
 
         private void ActiveMainScreen(bool value) {
             _mainScreen.gameObject.SetActive(value);
+            _generateTxt.gameObject.SetActive(false);
         }
 
         private void ActiveLoadScreen(bool value) {
