@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace PPopGame
+namespace GameUI
 {
-    public class UIMapNode : MonoBehaviour
+    public class UIMapLoaderNode : MonoBehaviour
     {
         #region Attributes
         [SerializeField]
@@ -16,11 +16,11 @@ namespace PPopGame
         #endregion
 
         #region Public Methods
-        public static void Init(UIMapNode mn) {
+        public static void Init(UIMapLoaderNode mn) {
             mn.gameObject.SetActive(true);
         }
 
-        public static void Finalize(UIMapNode mn) {
+        public static void Finalize(UIMapLoaderNode mn) {
             mn.gameObject.SetActive(false);
         }
 

@@ -14,9 +14,9 @@ namespace PPopGame {
         private Action<Texture2D> _completion;
 
         #region Public Methods
-        public void StartTransition() {
+        public void StartTransition(Action completion = null) {
             _imageEffectMaterial.SetFloat("_CutOff", 1);
-            StartCoroutine(FadeoutTransition());
+            StartCoroutine(FadeoutTransition(completion));
         }
 
         public void TakeScreenshot(Action<Texture2D> completion) {
@@ -36,13 +36,14 @@ namespace PPopGame {
             Graphics.Blit(source, destination, _imageEffectMaterial);
         }
 
-        private IEnumerator FadeoutTransition() {
+        private IEnumerator FadeoutTransition(Action completion = null) {
             var i = _imageEffectMaterial.GetFloat("_CutOff") * _time; 
             while(_imageEffectMaterial.GetFloat("_CutOff") > 0) {
                 _imageEffectMaterial.SetFloat("_CutOff", i / _time);
                 yield return new WaitForEndOfFrame();
                 i--;
             }
+            completion?.Invoke();
         }
 
         private void OnPostRender() {

@@ -6,6 +6,7 @@ using UnityEngine;
 
 using GameMap;
 using PathFinding;
+using GameUI;
 
 namespace PPopGame {
     public class GameController : MonoBehaviour
@@ -15,9 +16,10 @@ namespace PPopGame {
         [SerializeField] private MapGenerator _mapGenerator;
         [Header("UI Controller")]
         [SerializeField] private UIController _UIController;
+        [Header("Camera Controller")]
+        [SerializeField] private CameraController _cameraController;
         private List<MapNode> _allPaths;
         private MapNode _start, _end;
-        private int _currentRow = 8, _currentCol = 8; 
         private const string _errorPathMessage = "We can't find a path to that position.";
         private const string _saveMapMessage = "The Map was saved correctly.";
         private const string _saveMapErrorMessage = "The Map already exist.";
@@ -30,47 +32,47 @@ namespace PPopGame {
         }
 
         private void ConfigureUIController() {
-            _UIController.AddRestartMapAction(RestartMap);
+            _UIController.AddRefreshMapAction(RefreshMap);
 
             _UIController.AddChangeMapAction(() => {
-                RestartMap();
+                RefreshMap();
                 _mapGenerator.ChangeMap();
             });
 
             _UIController.AddSaveMapAction(() => {
-                RestartMap();
+                RefreshMap();
                  _mapGenerator.SaveMap((index) => {
-                    _UIController.TakeScreenshot((text2D) => {
+                    _cameraController.TakeScreenshot((text2D) => {
                         _mapGenerator.SaveMapImage(text2D, index);
-                        _UIController.SetMessageText(_saveMapMessage, Color.green);
+                        _UIController.ShowMessage(_saveMapMessage, Color.green);
                     });
                 });
             });
 
-            _UIController.AddGenerateMapAction(() => {
-                _mapGenerator.Generate(_currentRow, _currentCol, () => { _UIController.GoToMapScreen(); });
+            _UIController.AddBackMenuAction(() => { 
+                _mapGenerator.Desactive();
+                _UIController.BackFromMapScreen();
+            });
+
+            _UIController.AddGenerateMapAction((row, col) => {
+                _mapGenerator.Generate((int)row, (int)col, () => { 
+                    _UIController.GoToMapScreen();
+                    _cameraController.StartTransition();
+                });
             });
             
-            _UIController.AddLoadMapAction(() => {
-                _mapGenerator.LoadMapsImages( (sprites) => { 
-                    _UIController.GoToLoadScreen(sprites);
-                });
+            _UIController.AddLoadScreenAction(() => {
+                _mapGenerator.LoadMapsImages( (sprites) => { _UIController.GoToLoadScreen(sprites); });
             });
 
             _UIController.AddMapButtonAction((index) => {
                 _mapGenerator.LoadMapWithIndex(index, () => {
-                    _UIController.GoToMapScreen();
+                    _UIController.LoadMapAction();
+                    _cameraController.StartTransition();
                 });
             });
 
-            _UIController.AddBackMenuAction(() => {
-                _mapGenerator.Desactive();
-            });
-
-            _UIController.AddSliderAction((row, col) => {
-                _currentRow = (int)row;
-                _currentCol = (int)col;
-            });
+            _UIController.AddBackMainAction(() => { _UIController.BackFromLoaderScreen(); });
         }
 
         private void Update() {
@@ -146,13 +148,13 @@ namespace PPopGame {
                         _allPaths.Add(node);
                 }
             } catch(Exception e) {
-                _UIController.SetMessageText(_errorPathMessage, Color.red);
+                _UIController.ShowMessage(_errorPathMessage, Color.red);
             } finally {
                 _start = _end;
             }
         }
 
-        private void RestartMap() {
+        private void RefreshMap() {
             if(_allPaths.Count < 1)
                 return;
 
