@@ -41,14 +41,13 @@ namespace PPopGame {
                 RestartMap();
                  _mapGenerator.SaveMap((index) => {
                     _UIController.TakeScreenshot((text2D) => {
-                        _mapGenerator.SaveImageMap(text2D, index);
+                        _mapGenerator.SaveMapImage(text2D, index);
                         _UIController.SetMessageText(_saveMapMessage, Color.green);
                     });
                 });
             });
 
             _UIController.AddGenerateMapAction(() => {
-                Debug.Log($"{_currentRow} , {_currentCol}");
                 _mapGenerator.Generate(_currentRow, _currentCol, () => { _UIController.GoToMapScreen(); });
             });
             
@@ -59,9 +58,9 @@ namespace PPopGame {
             });
 
             _UIController.AddMapButtonAction((index) => {
-                _mapGenerator.LoadMapWithIndex(() => {
+                _mapGenerator.LoadMapWithIndex(index, () => {
                     _UIController.GoToMapScreen();
-                }, index);
+                });
             });
 
             _UIController.AddBackMenuAction(() => {

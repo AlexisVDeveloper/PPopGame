@@ -16,6 +16,14 @@ namespace PPopGame
         #endregion
 
         #region Public Methods
+        public static void Init(UIMapNode mn) {
+            mn.gameObject.SetActive(true);
+        }
+
+        public static void Finalize(UIMapNode mn) {
+            mn.gameObject.SetActive(false);
+        }
+
         public void SetMapUI(int index, Sprite sprite)
         {
             _mapImage.sprite = sprite;

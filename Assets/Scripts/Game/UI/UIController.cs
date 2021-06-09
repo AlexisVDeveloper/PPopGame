@@ -24,20 +24,20 @@ namespace PPopGame {
         public void GoToMapScreen() {
             ActiveMainScreen(false);
             ActiveLoadScreen(false);
-            _cameraController.StartTransition(1, true);
+            _cameraController.StartTransition();
         }
 
         public void GoToLoadScreen(Sprite[] mapSprites) {
             ActiveMainScreen(false);
             ActiveLoadScreen(true);
-            _cameraController.StartTransition(1, true);
+            _cameraController.StartTransition();
             _mapLoaderController.StartLoader(mapSprites);
         }
 
         public void GoToMainScreen() {
             ActiveLoadScreen(false);
             ActiveMainScreen(true);
-            _cameraController.StartTransition(0, false);
+            _cameraController.StartTransition();
         }
 
         public void AddChangeMapAction(Action changeMap) {
@@ -94,7 +94,7 @@ namespace PPopGame {
         }
 
         public void BackButtonPress() {
-            _mapLoaderController.DesactiveMap();
+            _mapLoaderController.DesactiveLoaderMaps();
             GoToMainScreen();
         }
 

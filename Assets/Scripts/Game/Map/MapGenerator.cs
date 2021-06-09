@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-using GameSaveLoad;
 using ObjectsPool;
 
 namespace GameMap
@@ -18,13 +17,10 @@ namespace GameMap
         private MapNode[,] _currentMap;
         private Pool<MapNode> _mapNodePool;
         private Pool<GameObject> _nodeParentPool;
-        private int _row, _col;
-        private const int _maxCharForCode = 15;
         private string _currentIndexCode;
+        private int _row, _col;
         private Action _completion;
         private const string MAPNODE_PATH = "Prefabs/MapNode";
-        private const string SAVE_NAME = "save_maps";
-        private const string IMAGE_NAME = "map_";
         #endregion
 
         #region Public Methods
@@ -40,6 +36,7 @@ namespace GameMap
 
         public void Desactive()
         {
+            _currentIndexCode = null;
             StartCoroutine(DesactiveMap());
         }
 
@@ -49,34 +46,29 @@ namespace GameMap
             StartCoroutine(ChangeAllMap());
         }
 
-        public void SaveMap(Action<int> completion)
-        {
-            StartCoroutine(SaveMapData(completion));
+        public void SaveMapImage(Texture2D image, string codeIndex) {
+            MapSaveLoad.SaveImageMap(image, codeIndex);
         }
 
-        public void SaveImageMap(Texture2D image, int index)
+        public void SaveMap(Action<string> completion)
         {
-            var data = IOSaveLoad<SaveData>.LoadData(SAVE_NAME);
-
-            if (data != null)
-                IOSaveLoad<Texture2D>.SaveImageData(image, IMAGE_NAME + index);
+            completion += (codeIndex) => { _currentIndexCode = codeIndex; };
+            StartCoroutine(MapSaveLoad.SaveMapData(completion, _currentMap, _currentIndexCode));
         }
 
         public void LoadMapsImages(Action<Sprite[]> completion)
         {
-            StartCoroutine(GetAllMapsImages(completion));
+            StartCoroutine(MapSaveLoad.GetAllMapsImages(completion));
         }
 
-        public void LoadMapWithIndex(Action completion, int index)
-        {
-            var data = IOSaveLoad<SaveData>.LoadData(SAVE_NAME);
-            var mapNodes = data.maps[index].mapNodes;
-            _row = mapNodes.GetLength(0);
-            _col = mapNodes.GetLength(1);
-
+        public void LoadMapWithIndex(int index, Action completion) {
+            var mapNodeSave = MapSaveLoad.GetMapWithIndex(index);
+            _currentIndexCode = mapNodeSave.indexCode;
+            _row = mapNodeSave.mapNodes.GetLength(0);
+            _col = mapNodeSave.mapNodes.GetLength(1);
             _completion = completion;
-            _currentIndexCode = data.maps[index].indexCode;
-            StartCoroutine(GenerateNode(mapNodes));
+
+            StartCoroutine(GenerateNode(mapNodeSave.mapNodes)); 
         }
         #endregion
 
@@ -148,84 +140,6 @@ namespace GameMap
                     yield return new WaitForEndOfFrame();
                 }
             }
-
-            _currentIndexCode = null;
-        }
-
-        private IEnumerator SaveMapData(Action<int> completion)
-        {
-            var oldData = IOSaveLoad<SaveData>.LoadData(SAVE_NAME);
-
-            var row = _currentMap.GetLength(0);
-            var col = _currentMap.GetLength(1);
-
-            SaveData data = oldData == null ? new SaveData() : oldData;
-            data.maps = oldData == null ? new List<MapData>() : oldData.maps;
-
-            var _map = new MapData();
-            _map.mapNodes = new MapNodeData[row, col];
-
-            for (var i = 0; i < row; i++)
-            {
-                for (var j = 0; j < col; j++)
-                {
-                    var newNode = new MapNodeData();
-                    newNode.currentType = _currentMap[i, j].GetNodeType();
-                    _map.mapNodes[i, j] = newNode;
-                    yield return new WaitForEndOfFrame();
-                }
-            }
-
-            var index = 0;
-
-            if (_currentIndexCode != null)
-            {
-                for (var i = 0; i < data.maps.Count; i++)
-                {
-                    if (data.maps[i].indexCode == _currentIndexCode)
-                    {
-                        _map.indexCode = _currentIndexCode;
-                        data.maps[i] = _map;
-                        index = i;
-                    }
-
-                    yield return new WaitForEndOfFrame();
-                }
-            }
-            else
-            {
-                _currentIndexCode = GenerateIndexCode();
-                _map.indexCode = _currentIndexCode;
-                data.maps.Add(_map);
-                index = (data.maps.Count - 1);
-            }
-
-            IOSaveLoad<SaveData>.SaveData(data, SAVE_NAME);
-            completion?.Invoke(index);
-        }
-
-        private IEnumerator GetAllMapsImages(Action<Sprite[]> completion)
-        {
-            var data = IOSaveLoad<SaveData>.LoadData(SAVE_NAME);
-
-            if (data != null)
-            {
-                var result = new Sprite[data.maps.Count];
-                var imagesCount = data.maps.Count;
-
-                for (var i = 0; i < imagesCount; i++)
-                {
-                    var text2D = IOSaveLoad<Texture2D>.LoadImage(IMAGE_NAME + i);
-                    if (text2D != null)
-                    {
-                        result[i] = Sprite.Create(text2D, new Rect(0.0f, 0.0f, text2D.width, text2D.height), new Vector2(0.5f, 0.5f), 100.0f);
-                    }
-                    yield return new WaitForEndOfFrame();
-                }
-                completion?.Invoke(result);
-            }
-            else
-                completion?.Invoke(new Sprite[0]);
         }
 
         private MapNode InstantiateNode()
@@ -256,18 +170,6 @@ namespace GameMap
         private static void FinalizeParent(GameObject parent)
         {
             parent.gameObject.SetActive(false);
-        }
-
-        private string GenerateIndexCode()
-        {
-            var characters = "0123456789abcdefghijklmnopqrstuvwxABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            var result = "MAP";
-            for (var i = 0; i < _maxCharForCode; i++)
-            {
-                var charIndex = UnityEngine.Random.Range(0, characters.Length);
-                result += characters[charIndex];
-            }
-            return result;
         }
         #endregion
     }
